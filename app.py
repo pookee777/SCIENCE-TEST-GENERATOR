@@ -25,9 +25,7 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -83,7 +81,9 @@ def create_app():
         # Create database tables
         db.create_all()
         logger.debug("Database tables created")
-
+    def index():
+    return render_template("routes.index.html")
+    
     @app.route('/health')
     def health_check():
         try:
