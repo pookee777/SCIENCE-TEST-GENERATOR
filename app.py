@@ -9,6 +9,7 @@ import secrets
 from datetime import timedelta
 from dotenv import load_dotenv
 from routes import create_routes 
+
 # Add the project root directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -57,10 +58,12 @@ def create_app():
     @app.context_processor
     def inject_user():
         return dict(current_user=current_user)
+    from flask_login import LoginManager
 
     # Initialize extensions with the app
     db.init_app(app)
-    login_manager.init_app(app)
+    login_manager = LoginManager()
+    login_manager.init_app(app) 
     login_manager.login_view = 'auth.login'  # Specify the login view
     logger.debug("Extensions initialized")
 
