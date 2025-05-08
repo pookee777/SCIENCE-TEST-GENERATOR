@@ -37,9 +37,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-cache-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            pip-cache-
+            ${{ runner.os }}-pip-
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
