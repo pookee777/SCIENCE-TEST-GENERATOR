@@ -8,7 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 import secrets
 from datetime import timedelta
 from dotenv import load_dotenv
-from routes import create_routes 
 
 # Add the project root directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -22,10 +21,11 @@ Base = declarative_base()
 
 
 app = Flask(__name__)  
-app.register_blueprint(create_routes())
-@app.route("/")
-def index():
-    return render_template("index.html")
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -58,12 +58,10 @@ def create_app():
     @app.context_processor
     def inject_user():
         return dict(current_user=current_user)
-    from flask_login import LoginManager
 
     # Initialize extensions with the app
     db.init_app(app)
-    login_manager = LoginManager()
-    login_manager.init_app(app) 
+    login_manager.init_app(app)
     login_manager.login_view = 'auth.login'  # Specify the login view
     logger.debug("Extensions initialized")
 
@@ -83,7 +81,8 @@ def create_app():
         # Create database tables
         db.create_all()
         logger.debug("Database tables created")
-    
+    def index():
+        return render_template("routes.index.html")
     
     @app.route('/health')
     def health_check():
