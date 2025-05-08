@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 import secrets
 from datetime import timedelta
 from dotenv import load_dotenv
-
+from routes import create_routes 
 # Add the project root directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,9 +21,7 @@ Base = declarative_base()
 
 
 app = Flask(__name__)  
-from flask import Flask, render_template
-
-app = Flask(__name__)
+app.register_blueprint(create_routes())
 @app.route("/")
 def index():
     return render_template("index.html")
