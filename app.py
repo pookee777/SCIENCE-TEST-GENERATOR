@@ -19,14 +19,6 @@ from extensions import db, login_manager
 
 Base = declarative_base()
 
-
-app = Flask(__name__)  
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-
-
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -81,8 +73,6 @@ def create_app():
         # Create database tables
         db.create_all()
         logger.debug("Database tables created")
-    def index():
-        return render_template("routes.index.html")
     
     @app.route('/health')
     def health_check():
