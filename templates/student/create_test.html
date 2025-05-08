@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Create Test{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Create Custom Test</h1>
+    <a href="{{ url_for('routes.student_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Test Parameters</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Create a custom test by selecting your preferred parameters. The system will generate a random test based on your criteria.
+                </div>
+                
+                <form method="POST" action="{{ url_for('routes.student_create_test') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Test Title</label>
+                        {{ form.title(class="form-control") }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Chapters (Select at least one)</label>
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for subfield in form.chapters %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            {{ subfield(class="form-check-input") }}
+                                            <label class="form-check-label" for="{{ subfield.id }}">
+                                                {{ subfield.label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if form.chapters.errors %}
+                            <div class="text-danger">
+                                {% for error in form.chapters.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="difficulty" class="form-label">Difficulty Level</label>
+                        {{ form.difficulty(class="form-select") }}
+                        {% if form.difficulty.errors %}
+                            <div class="text-danger">
+                                {% for error in form.difficulty.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="question_type" class="form-label">Question Type</label>
+                            {{ form.question_type(class="form-select") }}
+                            {% if form.question_type.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.question_type.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="num_questions" class="form-label">Number of Questions</label>
+                            {{ form.num_questions(class="form-control", type="number", min=1, max=20) }}
+                            {% if form.num_questions.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.num_questions.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="duration_minutes" class="form-label">Test Duration (minutes)</label>
+                        {{ form.duration_minutes(class="form-control", type="number", min=5, max=180) }}
+                        {% if form.duration_minutes.errors %}
+                            <div class="text-danger">
+                                {% for error in form.duration_minutes.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Once you start the test, a timer will begin. The test will automatically submit when the time is up.
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Test Creation Tips</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-lightbulb text-warning me-2"></i>Difficulty Levels</h6>
+                        <ul class="list-unstyled ms-4">
+                            <li><span class="badge bg-success">Easy</span> - Basic concepts and definitions</li>
+                            <li><span class="badge bg-warning">Medium</span> - Application of concepts</li>
+                            <li><span class="badge bg-danger">Hard</span> - Complex problems and analysis</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-question-circle text-info me-2"></i>Question Types</h6>
+                        <ul class="list-unstyled ms-4">
+                            <li><strong>Multiple Choice</strong> - Select one correct option</li>
+                            <li><strong>True/False</strong> - Determine if a statement is true or false</li>
+                            <li><strong>Numerical</strong> - Enter a numerical answer</li>
+                            <li><strong>Descriptive</strong> - Write detailed explanations</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6><i class="fas fa-star text-warning me-2"></i>Tips for Better Results</h6>
+                        <ul>
+                            <li>Choose a balanced mix of difficulty levels</li>
+                            <li>Allocate appropriate time (about 2-3 minutes per question)</li>
+                            <li>Select multiple related chapters to test yourself on connected concepts</li>
+                            <li>For focused revision, select just one chapter at a time</li>
+                            <li>Review your performance after each test to identify weak areas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

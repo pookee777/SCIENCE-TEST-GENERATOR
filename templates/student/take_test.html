@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}Taking Test{% endblock %}
+
+{% block content %}
+<!-- Moved timer outside other containers and added box-shadow -->
+<div id="timer" style="font-size: 26px; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #f8f9fa; position: fixed; top: 20px; right: 20px; background: #212529; padding: 10px 20px; border: 2px solid #0d6efd; border-radius: 12px; z-index: 99999; box-shadow: 0 4px 12px rgba(0,0,0,0.8);">
+    Loading timer...
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>{{ test.title }}</h1>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <!-- Add counter display right after progress bar -->
+        <div class="d-flex justify-content-between align-items-center" style="margin-top: 20px;">
+            <span id="answered-count" style="font-weight: bold; color: #28a745;">Answered: {{ answered }}</span>
+            <span id="unanswered-count" style="font-weight: bold; color: #dc3545;">Unanswered: {{ unanswered }}</span>
+        </div>
+        <div class="progress">
+            <div class="progress-bar bg-primary" role="progressbar" id="progress-bar" style="width: 0%"></div>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('routes.take_test', result_id=test_result.id) }}" id="testForm">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="card bg-dark shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Questions</h5>
+                    <div>
+                        <span class="badge bg-secondary me-2">Total: {{ forms|length }} questions</span>
+                        <span class="badge bg-primary">Total Marks: {{ test.total_marks }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="question-nav" class="mb-3 d-flex flex-wrap">
+                        {% for question, form in forms %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1 question-nav-btn" data-question="{{ loop.index0 }}">
+                            Q{{ loop.index }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    
+                    <div id="questions-container">
+                        {% for question, form in forms %}
+                        <div class="question-slide" id="question-{{ loop.index0 }}" {% if not loop.first %}style="display: none;"{% endif %}>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>
+                                    <span class="badge bg-secondary">Question {{ loop.index }} of {{ forms|length }}</span>
+                                </h5>
+                                <span class="badge bg-info">{{ question.marks }} marks</span>
+                            </div>
+                            
+                            {{ form.hidden_tag() }}
+                            {{ form.question_id() }}
+                            {{ form.test_result_id() }}
+                            {{ form.question_type() }}
+                            
+                            <div class="mb-4">
+                                <div class="card bg-dark border-secondary">
+                                    <div class="card-body">
+                                        <p class="card-text">{{ question.text }}</p>
+                                        
+                                        <!-- Display chapter and difficulty -->
+                                        <div class="d-flex mt-2">
+                                            <span class="badge bg-secondary me-2">{{ question.chapter.name }}</span>
+                                            <span class="badge 
+                                                {% if question.difficulty.value == 'easy' %}bg-success
+                                                {% elif question.difficulty.value == 'medium' %}bg-warning
+                                                {% else %}bg-danger{% endif %}">
+                                                {{ question.difficulty.value.capitalize() }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if question.image_path %}
+                            <div class="mb-3">
+                                <img src="{{ url_for('static', filename=question.image_path.replace('\\', '/')) }}" 
+                                     class="img-fluid rounded" 
+                                     alt="Question Image"
+                                     style="max-width: 100%; height: auto; display: block; margin: auto;"
+                                     onerror="console.log('Failed to load image:', this.src); this.style.display='none';">
+                                <small class="text-muted d-block text-center mt-1" id="image-error"></small>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Different answer inputs based on question type -->
+                            <div class="mb-3">
+                                {% if question.question_type.value == 'multiple_choice' %}
+                                    <div class="card bg-dark border-secondary">
+                                        <div class="card-body">
+                                            <div class="mb-2">
+                                                {% for option in form.multiple_choice %}
+                                                <div class="form-check mb-2">
+                                                    {{ option(class="form-check-input answer-field") }}
+                                                    {{ option.label(class="form-check-label") }}
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% elif question.question_type.value == 'true_false' %}
+                                    <div class="card bg-dark border-secondary">
+                                        <div class="card-body">
+                                            <div class="mb-2">
+                                                {% for option in form.true_false %}
+                                                <div class="form-check mb-2">
+                                                    {{ option(class="form-check-input answer-field") }}
+                                                    {{ option.label(class="form-check-label") }}
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="card bg-dark border-secondary">
+                                        <div class="card-body">
+                                            <div class="mb-2">
+                                                <label class="form-label">Your Answer</label>
+                                                {{ form.text_answer(class="form-control answer-field", rows=3) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-3">
+                                <button type="button" class="btn btn-secondary prev-question" {% if loop.first %}disabled{% endif %}>
+                                    <i class="fas fa-arrow-left me-1"></i> Previous
+                                </button>
+                                <button type="button" class="btn btn-secondary next-question" {% if loop.last %}disabled{% endif %}>
+                                    Next <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" name="save_progress" value="1" class="btn btn-outline-primary">
+                            <i class="fas fa-save me-1"></i> Save Progress
+                        </button>
+                        <button type="button" class="btn btn-success" id="submit-test-btn" data-bs-toggle="modal" data-bs-target="#submitTestModal">
+                            <i class="fas fa-check-circle me-1"></i> Submit Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-dark shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Question Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Answered:</span>
+                            <span id="answered-count">0</span>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar bg-success" id="answered-progress" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Unanswered:</span>
+                            <span id="unanswered-count">{{ forms|length }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-danger" id="unanswered-progress" role="progressbar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="save_progress" value="1" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-save me-1"></i> Save Progress
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#submitTestModal">
+                            <i class="fas fa-check-circle me-1"></i> Submit Test
+                        </button>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Test started at:</small>
+                        <small>{{ local_start_time.strftime('%I:%M %p IST') }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Submit Test Modal -->
+    <div class="modal fade" id="submitTestModal" tabindex="-1" aria-labelledby="submitTestModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="submitTestModalLabel">Submit Test</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to submit your test?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> 
+                        <span id="unanswered-warning">You have <strong id="modal-unanswered-count">0</strong> unanswered questions.</span>
+                        <span id="all-answered-message" style="display: none;">All questions have been answered.</span>
+                    </div>
+                    <p>Once submitted, you cannot return to the test.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continue Test</button>
+                    <button type="submit" name="submit_test" value="1" class="btn btn-success">Submit Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Counter logic 
+    function updateAnswerCounts() {
+        let totalAnswered = 0;
+        $('.question-slide').each(function() {
+            const hasRadioAnswer = $(this).find('input[type="radio"]:checked').length > 0;
+            const hasTextAnswer = $(this).find('textarea').val()?.trim().length > 0;
+            
+            if (hasRadioAnswer || hasTextAnswer) {
+                totalAnswered++;
+            }
+        });
+
+        const totalQuestions = Number('{{ forms|length }}');
+        const unanswered = totalQuestions - totalAnswered;
+
+        // Update ALL counter displays including top counters and side panel
+        $('.answered-count, #answered-count').text(totalAnswered);
+        $('.unanswered-count, #unanswered-count').text(unanswered);
+        $('#modal-unanswered-count').text(unanswered);
+
+        // Update progress bars
+        const answeredPercent = (totalAnswered / totalQuestions) * 100;
+        $('#answered-progress').css('width', answeredPercent + '%');
+        $('#unanswered-progress').css('width', (100 - answeredPercent) + '%');
+
+        // Update modal message
+        if (unanswered === 0) {
+            $('#unanswered-warning').hide();
+            $('#all-answered-message').show();
+        } else {
+            $('#unanswered-warning').show();
+            $('#all-answered-message').hide();
+        }
+    }
+
+    // Add event listeners
+    $('.answer-field').on('change keyup input propertychange paste', updateAnswerCounts);
+    $('#testForm').on('submit', updateAnswerCounts);
+    
+    // Initial count on page load
+    $(document).ready(function() {
+        updateAnswerCounts();
+    });
+    
+    // Timer logic
+    let secondsRemaining = parseInt("{{ time_remaining }}"); // Changed to let
+    let timerInterval;  // Declare interval variable
+    
+    function formatTime(s) {
+        const hours = Math.floor(s / 3600);
+        const minutes = Math.floor((s % 3600) / 60);
+        const seconds = s % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+        const timerDiv = document.getElementById("timer");
+        if (secondsRemaining >= 0) {
+            timerDiv.textContent = formatTime(secondsRemaining);
+            secondsRemaining--;
+        } else {
+            clearInterval(timerInterval);
+            timerDiv.textContent = "Time's up!";
+            autoSubmitTest();
+        }
+    }
+
+    function autoSubmitTest() {
+        const form = document.getElementById("testForm");
+        if (form) {
+            alert("Time's up! Your test is being submitted.");
+            form.submit();
+        }
+    }
+
+    // Initialize and start timer
+    timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();  // Call immediately
+
+    $(document).ready(function() {
+        // Set up the navigation between questions
+        $(".next-question").click(function() {
+            const currentSlide = $(this).closest(".question-slide");
+            const currentIndex = parseInt(currentSlide.attr("id").split("-")[1]);
+            const nextSlide = $("#question-" + (currentIndex + 1));
+            
+            currentSlide.hide();
+            nextSlide.show();
+            
+            // Update active state in the question navigation
+            $(".question-nav-btn").removeClass("btn-primary").addClass("btn-outline-secondary");
+            $(".question-nav-btn[data-question='" + (currentIndex + 1) + "']").removeClass("btn-outline-secondary").addClass("btn-primary");
+            
+            // Update progress bar
+            updateProgressBar(currentIndex + 1);
+        });
+        
+        $(".prev-question").click(function() {
+            const currentSlide = $(this).closest(".question-slide");
+            const currentIndex = parseInt(currentSlide.attr("id").split("-")[1]);
+            const prevSlide = $("#question-" + (currentIndex - 1));
+            
+            currentSlide.hide();
+            prevSlide.show();
+            
+            // Update active state in the question navigation
+            $(".question-nav-btn").removeClass("btn-primary").addClass("btn-outline-secondary");
+            $(".question-nav-btn[data-question='" + (currentIndex - 1) + "']").removeClass("btn-outline-secondary").addClass("btn-primary");
+            
+            // Update progress bar
+            updateProgressBar(currentIndex - 1);
+        });
+        
+        // Question navigation buttons
+        $(".question-nav-btn").click(function() {
+            const questionIndex = $(this).data("question");
+            
+            // Hide all slides
+            $(".question-slide").hide();
+            
+            // Show the selected slide
+            $("#question-" + questionIndex).show();
+            
+            // Update active state
+            $(".question-nav-btn").removeClass("btn-primary").addClass("btn-outline-secondary");
+            $(this).removeClass("btn-outline-secondary").addClass("btn-primary");
+            
+            // Update progress bar
+            updateProgressBar(questionIndex);
+        });
+        
+        // Set first question as active
+        $(".question-nav-btn[data-question='0']").removeClass("btn-outline-secondary").addClass("btn-primary");
+        
+        // Update progress bar
+        function updateProgressBar(currentIndex) {
+            const progressPercentage = ((currentIndex + 1) / parseInt("{{ forms|length }}")) * 100;
+            $("#progress-bar").css("width", progressPercentage + "%");
+        }
+        
+        // Initialize progress bar
+        updateProgressBar(0);
+    });
+</script>
+{% endblock %}

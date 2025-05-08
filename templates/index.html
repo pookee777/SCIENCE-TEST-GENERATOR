@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2 text-center">
+            <h1 class="display-4 mb-4">CBSE Class 10 Science Test Generator</h1>
+            <p class="lead mb-4">
+                Prepare for your science exams with personalized tests, comprehensive analytics, and detailed solutions.
+            </p>
+            {% if current_user.is_authenticated %}
+                {% if current_user.role.value == 'teacher' %}
+                    <a href="{{ url_for('routes.teacher_dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('routes.student_dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                {% endif %}
+            {% else %}
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-md-2">Register</a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">Login</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">Key Features</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 bg-dark shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                            <h4>Teacher & Student Roles</h4>
+                            <p class="text-muted">
+                                Separate interfaces for teachers to monitor student performance and for students to take tests.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 bg-dark shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-edit fa-3x mb-3 text-success"></i>
+                            <h4>Custom Test Creation</h4>
+                            <p class="text-muted">
+                                Create tests based on specific chapters, difficulty levels, and question types.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 bg-dark shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line fa-3x mb-3 text-info"></i>
+                            <h4>Performance Analytics</h4>
+                            <p class="text-muted">
+                                Track progress with detailed performance analytics and identify strengths and weaknesses.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How to Create an Account Section -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">How to Get Started</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card bg-dark shadow-sm h-100">
+                        <div class="card-header bg-primary bg-opacity-25">
+                            <h4 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>For Teachers</h4>
+                        </div>
+                        <div class="card-body">
+                            <ol class="list-group list-group-numbered bg-dark border-0">
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Create an Account</strong>: Click the <a href="{{ url_for('auth.register') }}">Register</a> button and fill in your details. Select "Teacher" as your role.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Verify Email</strong>: Confirm your email address through the verification link sent to your inbox.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Add Questions</strong>: Create a comprehensive question bank by adding questions across different chapters, difficulty levels, and question types.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Create Tests</strong>: Design tests for your students based on specific learning objectives or curriculum requirements.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Monitor Progress</strong>: Track student performance through detailed analytics and performance reports.
+                                </li>
+                            </ol>
+                            <div class="mt-3 text-center">
+                                <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+                                    <i class="fas fa-user-plus me-2"></i>Register as a Teacher
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card bg-dark shadow-sm h-100">
+                        <div class="card-header bg-success bg-opacity-25">
+                            <h4 class="mb-0"><i class="fas fa-user-graduate me-2"></i>For Students</h4>
+                        </div>
+                        <div class="card-body">
+                            <ol class="list-group list-group-numbered bg-dark border-0">
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Create an Account</strong>: Click the <a href="{{ url_for('auth.register') }}">Register</a> button and fill in your details. Select "Student" as your role.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Select Your Teacher</strong>: Choose your teacher from the dropdown list during registration.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Take Assigned Tests</strong>: Complete tests assigned by your teacher from your dashboard.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Create Custom Tests</strong>: Generate your own practice tests based on chapters and difficulty levels you want to focus on.
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <strong>Use Personalized Tests</strong>: Let our AI system recommend questions based on your performance history.
+                                </li>
+                            </ol>
+                            <div class="mt-3 text-center">
+                                <a href="{{ url_for('auth.register') }}" class="btn btn-success">
+                                    <i class="fas fa-user-plus me-2"></i>Register as a Student
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Section -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            How can I create a personalized test?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            After logging in as a student, navigate to your dashboard and click on the <strong>Personalized Test</strong> button. Our AI-powered recommendation system will analyze your previous performance and generate a test tailored to your learning needs, focusing on areas where you need more practice.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Can I select multiple chapters for my test?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! When creating a custom test, you can select multiple chapters using the checkboxes provided. This allows you to focus on specific areas or create comprehensive tests covering multiple topics.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            How are test results evaluated?
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Multiple choice and true/false questions are evaluated automatically. For numerical and descriptive questions, teachers can review and score them manually. All results include detailed solutions and explanations to help you understand the concepts better.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingFour">
+                        <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            What if I forget my password?
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Don't worry! On the login page, click on the "Forgot Password" link. You'll be prompted to enter your email address, and we'll send you a password reset link that will remain valid for one hour.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="headingFive">
+                        <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                            Can teachers create tests for specific students?
+                        </button>
+                    </h2>
+                    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, teachers can create tests and assign them to specific students or make them available to all students. This feature allows for targeted assessment and practice based on individual learning needs.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

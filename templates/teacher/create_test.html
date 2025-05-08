@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit_mode %}Add Questions to Test{% else %}Create Test{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{% if edit_mode %}Add Questions to Test{% else %}Create Test{% endif %}</h1>
+    <a href="{{ url_for('routes.teacher_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if not edit_mode %}
+<!-- Step 1: Create test details -->
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Test Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('routes.create_test') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Test Title</label>
+                        {{ form.title(class="form-control") }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        {{ form.description(class="form-control", rows=3) }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                            {{ form.duration_minutes(class="form-control", type="number", min=5) }}
+                            {% if form.duration_minutes.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.duration_minutes.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assign to</label>
+                            <div class="form-check mt-2">
+                                {{ form.is_public(class="form-check-input") }}
+                                <label class="form-check-label" for="is_public">
+                                    Assign to all my students
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Step 2: Add questions to the test -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Test: {{ test.title }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Description:</strong> {{ test.description }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Duration:</strong> {{ test.duration_minutes }} minutes</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Assigned to:</strong> {% if test.is_public %}All Students{% else %}Selected Students{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('routes.add_questions_to_test', test_id=test.id) }}">
+            <div class="card bg-dark shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Select Questions</h5>
+                    <div class="d-flex">
+                        <select id="chapterFilter" class="form-select form-select-sm me-2">
+                            <option value="all">All Chapters</option>
+                            {% for chapter in chapters %}
+                                <option value="{{ chapter.id }}">{{ chapter.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select id="difficultyFilter" class="form-select form-select-sm me-2">
+                            <option value="all">All Difficulties</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                        <input type="text" id="questionSearch" class="form-control form-control-sm" placeholder="Search...">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> Select questions to include in the test. Click on a question row to select/deselect it.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="questionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Question</th>
+                                    <th>Chapter</th>
+                                    <th>Difficulty</th>
+                                    <th>Type</th>
+                                    <th>Marks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for question in questions %}
+                                <tr class="question-row" data-chapter="{{ question.chapter_id }}" data-difficulty="{{ question.difficulty.value }}">
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input question-checkbox" type="checkbox" name="selected_questions" value="{{ question.id }}" id="question{{ question.id }}" {% if question.id in added_question_ids %}checked{% endif %}>
+                                        </div>
+                                    </td>
+                                    <td>{{ question.text|truncate(70) }}</td>
+                                    <td>{{ chapters[question.chapter_id].name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if question.difficulty.value == 'easy' %}bg-success
+                                            {% elif question.difficulty.value == 'medium' %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ question.difficulty.value.capitalize() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ question.question_type.value.replace('_', ' ').capitalize() }}</td>
+                                    <td>{{ question.marks }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Selected Questions: <span id="selectedCount">0</span></strong>
+                            <strong class="ms-3">Total Marks: <span id="totalMarks">0</span></strong>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Test</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if edit_mode %}
+<script>
+    $(document).ready(function() {
+        // Make entire row clickable for selecting questions
+        $(".question-row").click(function(e) {
+            if (!$(e.target).is('input')) {
+                const checkbox = $(this).find('.question-checkbox');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                updateCounters();
+            }
+        });
+        
+        // Update counters when checkboxes change
+        $(".question-checkbox").change(function() {
+            updateCounters();
+        });
+        
+        // Filter questions by chapter and difficulty
+        $("#chapterFilter, #difficultyFilter").change(function() {
+            filterQuestions();
+        });
+        
+        // Filter questions by search text
+        $("#questionSearch").on("keyup", function() {
+            filterQuestions();
+        });
+        
+        // Filter questions based on selected filters
+        function filterQuestions() {
+            const chapterFilter = $("#chapterFilter").val();
+            const difficultyFilter = $("#difficultyFilter").val();
+            const searchText = $("#questionSearch").val().toLowerCase();
+            
+            $(".question-row").each(function() {
+                const row = $(this);
+                const chapter = row.data("chapter").toString();
+                const difficulty = row.data("difficulty");
+                const text = row.text().toLowerCase();
+                
+                const chapterMatch = chapterFilter === "all" || chapter === chapterFilter;
+                const difficultyMatch = difficultyFilter === "all" || difficulty === difficultyFilter;
+                const textMatch = searchText === "" || text.indexOf(searchText) > -1;
+                
+                row.toggle(chapterMatch && difficultyMatch && textMatch);
+            });
+        }
+        
+        // Update selected count and total marks
+        function updateCounters() {
+            const selectedCount = $(".question-checkbox:checked").length;
+            $("#selectedCount").text(selectedCount);
+            
+            // Calculate total marks
+            let totalMarks = 0;
+            $(".question-checkbox:checked").each(function() {
+                const row = $(this).closest("tr");
+                const marks = parseInt(row.find("td:last").text());
+                totalMarks += marks;
+            });
+            $("#totalMarks").text(totalMarks);
+        }
+        
+        // Initialize counters
+        updateCounters();
+    });
+</script>
+{% endif %}
+{% endblock %}

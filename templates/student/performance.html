@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}My Performance{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Performance</h1>
+    <a href="{{ url_for('routes.student_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Overall Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="card bg-dark border-secondary mb-3 p-4">
+                                <h2 class="display-3 mb-2">{{ overall_percentage }}%</h2>
+                                <p class="text-muted mb-0">Average Score</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <canvas id="performanceTrendChart" width="150" height="100"></canvas>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-success mb-3">
+                            <div class="card-header bg-success bg-opacity-25">
+                                <h5 class="card-title mb-0"><i class="fas fa-star text-success me-2"></i>Strengths</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if strengths %}
+                                    <ul class="mb-0 text-light">  <!-- Added text-light class -->
+                                        {% for chapter in strengths %}
+                                            <li>{{ chapter }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted mb-0">Complete more tests to identify your strengths.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-danger mb-3">
+                            <div class="card-header bg-danger bg-opacity-25">
+                                <h5 class="card-title mb-0"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Areas for Improvement</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if weaknesses %}
+                                    <ul class="mb-0 text-light">  <!-- Added text-light class -->
+                                        {% for chapter in weaknesses %}
+                                            <li>{{ chapter }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted mb-0">Complete more tests to identify areas for improvement.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-2">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header pb-2">
+                <h5 class="card-title mb-0">Chapter Performance</h5>
+            </div>
+            <div class="card-body py-2">
+                <div class="row justify-content-center">
+                    <div class="col-md-9">
+                        <canvas id="chapterPerformanceChart" width="50%" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Test History</h5>
+                <a href="{{ url_for('routes.student_create_test') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> Create New Test
+                </a>
+            </div>
+            <div class="card-body">
+                {% if test_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Test</th>
+                                    <th>Date</th>
+                                    <th>Score</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in test_data %}
+                                <tr>
+                                    <td>{{ test.title }}</td>
+                                    <td>{{ test.date }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">{{ test.score }} / {{ test.total }} ({{ test.percentage }}%)</div>
+                                            <div class="progress flex-grow-1" style="height: 6px; width: 100px;">
+                                                <div class="progress-bar 
+                                                    {% if test.percentage >= 80 %}bg-success
+                                                    {% elif test.percentage >= 60 %}bg-info
+                                                    {% elif test.percentage >= 40 %}bg-warning
+                                                    {% else %}bg-danger{% endif %}"
+                                                    role="progressbar" style="width: {{ test.percentage|float }}%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('routes.test_results', result_id=test.id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-eye me-1"></i> Review
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">You haven't completed any tests yet.</p>
+                        <a href="{{ url_for('routes.student_create_test') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Create Your First Test
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+$(document).ready(function() {
+    // Performance trend chart
+    if (document.getElementById('performanceTrendChart')) {
+        const trendCtx = document.getElementById('performanceTrendChart').getContext('2d');
+        const testData = JSON.parse('{{ test_data|tojson|safe }}');
+        const trendData = {
+            labels: testData.map(test => test.date),  // Using formatted IST dates
+            datasets: [{
+                label: 'Score (%)',
+                data: testData.map(test => test.percentage),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: true
+            }]
+        };
+        new Chart(trendCtx, {
+            type: 'line',
+            data: trendData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true, 
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false,
+                            borderDash: [8, 4]
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 11
+                            },
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Test Dates',
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 12,
+                                weight: '500'
+                            },
+                            padding: {top: 20}
+                        },
+                        ticks: {
+                            display: false  // Hide the date labels
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Chapter performance chart
+    if (document.getElementById('chapterPerformanceChart')) {
+        const chapterCtx = document.getElementById('chapterPerformanceChart').getContext('2d');
+        const chapters = JSON.parse('{{ chapter_performance|tojson|safe }}');
+        const chapterData = {
+            labels: Object.keys(chapters),
+            datasets: [{
+                label: 'Performance (%)',
+                data: Object.values(chapters).map(d => d.percentage || 0),
+                backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                pointBorderColor: '#fff'
+            }]
+        };
+        new Chart(chapterCtx, {
+            type: 'radar',
+            data: chapterData,
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        beginAtZero: true, 
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.3)',  // Brighter grid lines
+                            lineWidth: 1,
+                            circular: true
+                        },
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.3)',  // Matching spoke lines
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: '#000',
+                            backdropColor: 'rgba(255, 255, 255, 0.8)',
+                            font: { size: 11 },
+                            backdropPadding: 3,
+                            z: 9999,  // Increased z-index to be in front
+                            stepSize: 20,  // Show ticks every 20 units
+                            count: 6  // Show 6 ticks (0,20,40,60,80,100)
+                        },
+                        pointLabels: {
+                            color: '#fff',
+                            font: { 
+                                size: 11,
+                                weight: '500'
+                            },
+                            padding: 10
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true, 
+                        text: 'Chapter Performance',
+                        color: '#fff',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

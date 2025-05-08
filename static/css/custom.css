@@ -1,0 +1,135 @@
+/* Custom CSS for Physics Test Generator */
+
+/* Override Bootstrap dark theme with slightly darker colors */
+body {
+    background-color: #121212;
+}
+
+/* Card styling */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+}
+
+/* Dashboard cards styling */
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+}
+
+/* Test taking styling */
+.question-slide {
+    transition: all 0.3s ease;
+}
+
+.question-nav-btn {
+    min-width: 42px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+/* Timer styling */
+#timer {
+    font-size: 1.1rem;
+}
+
+#time-display {
+    font-family: monospace;
+    font-size: 1.2rem;
+}
+
+/* Highlight correct answers in results */
+.text-correct {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.text-incorrect {
+    color: #dc3545;
+}
+
+/* Progress bars */
+.progress {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    height: 0.5rem;
+}
+
+/* Better looking checkboxes */
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Make accordion buttons more visible */
+.accordion-button:not(.collapsed) {
+    color: #fff;
+    background-color: rgba(13, 110, 253, 0.2);
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(13, 110, 253, 0.25);
+}
+
+/* Custom badge colors for difficulty levels */
+.badge-easy {
+    background-color: #28a745;
+}
+
+.badge-medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-hard {
+    background-color: #dc3545;
+}
+
+/* Table hover styles */
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Form input focus */
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Sticky navigation for test taking */
+@media (min-width: 992px) {
+    .sticky-top {
+        top: 20px;
+    }
+}
+
+/* Print styles for test results */
+@media print {
+    .btn, .navbar, .footer {
+        display: none !important;
+    }
+    
+    body {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    
+    .container {
+        max-width: 100% !important;
+    }
+}

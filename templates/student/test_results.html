@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Test Results{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Test Results</h1>
+    <a href="{{ url_for('routes.student_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h4 class="card-title mb-0">{{ test.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p>{{ test.description }}</p>
+                        <p class="mb-1">
+                            <strong>Date Taken:</strong> {{ test_result.end_time.strftime('%Y-%m-%d %H:%M') }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Time Spent:</strong> 
+                            {% set time_spent = (test_result.end_time - test_result.start_time).total_seconds() // 60 %}
+                            {{ time_spent|int }} minutes
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark border-secondary text-center p-3">
+                            <h2 class="display-4 mb-1">{{ score_percentage }}%</h2>
+                            <p class="text-muted mb-0">Your Score</p>
+                            <div class="d-flex justify-content-center">
+                            </div>
+                            <p class="mb-0">
+                                <strong>{{ test_result.total_score }} / {{ test.total_marks }}</strong> marks
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-7">
+        <div class="card bg-dark shadow-sm h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Question Review</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="questionReviewAccordion">
+                    {% for answer, question in answers %}
+                        <div class="accordion-item bg-dark">
+                            <h2 class="accordion-header" id="heading{{ question.id }}">
+                                <button class="accordion-button collapsed bg-dark" type="button" data-bs-toggle="collapse" 
+                                       data-bs-target="#collapse{{ question.id }}" aria-expanded="false" 
+                                       aria-controls="collapse{{ question.id }}">
+                                    <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                                        <div>
+                                            <span class="badge 
+                                                {% if answer.is_correct %}bg-success
+                                                {% elif answer.is_correct is none %}bg-warning
+                                                {% else %}bg-danger{% endif %} me-2">
+                                                {% if answer.is_correct %}Correct
+                                                {% elif answer.is_correct is none %}Partially Correct
+                                                {% else %}Incorrect{% endif %}
+                                            </span>
+                                            {{ question.text|truncate(80) }}
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-info">{{ answer.score }} / {{ question.marks }}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ question.id }}" class="accordion-collapse collapse" 
+                                 aria-labelledby="heading{{ question.id }}" data-bs-parent="#questionReviewAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <h6>Question:</h6>
+                                        <p>{{ question.text }}</p>
+                                        {% if question.image_path %}
+                                        <div class="mb-3">
+                                            <img src="{{ url_for('static', filename=question.image_path) }}" 
+                                                 class="img-fluid rounded" 
+                                                 alt="Question image"
+                                                 style="max-height: 300px;">
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if question.question_type.value == 'multiple_choice' %}
+                                        <div class="mb-3">
+                                            <h6>Options:</h6>
+                                            <div class="ms-3">
+                                                <div class="mb-1 {% if question.correct_answer == 'A' %}text-success fw-bold{% endif %}">
+                                                    A. {{ question.option_a }}
+                                                    {% if question.correct_answer == 'A' %}<i class="fas fa-check-circle text-success ms-2"></i>{% endif %}
+                                                </div>
+                                                <div class="mb-1 {% if question.correct_answer == 'B' %}text-success fw-bold{% endif %}">
+                                                    B. {{ question.option_b }}
+                                                    {% if question.correct_answer == 'B' %}<i class="fas fa-check-circle text-success ms-2"></i>{% endif %}
+                                                </div>
+                                                <div class="mb-1 {% if question.correct_answer == 'C' %}text-success fw-bold{% endif %}">
+                                                    C. {{ question.option_c }}
+                                                    {% if question.correct_answer == 'C' %}<i class="fas fa-check-circle text-success ms-2"></i>{% endif %}
+                                                </div>
+                                                <div class="mb-1 {% if question.correct_answer == 'D' %}text-success fw-bold{% endif %}">
+                                                    D. {{ question.option_d }}
+                                                    {% if question.correct_answer == 'D' %}<i class="fas fa-check-circle text-success ms-2"></i>{% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="mb-3">
+                                        <h6>Your Answer:</h6>
+                                        <p {% if not answer.is_correct %}class="text-danger"{% endif %}>
+                                            {{ answer.student_answer or 'No answer provided' }}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>Correct Answer:</h6>
+                                        <p class="text-success">{{ question.correct_answer }}</p>
+                                    </div>
+                                    
+                                    {% if question.solution %}
+                                        <div class="card bg-dark border-info mb-3">
+                                            <div class="card-header bg-info bg-opacity-25">
+                                                <h6 class="card-title mb-0">Detailed Solution</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text">{{ question.solution }}</p>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-2">
+                                        <span class="badge bg-secondary me-1">{{ question.chapter.name }}</span>
+                                        <span class="badge 
+                                            {% if question.difficulty.value == 'easy' %}bg-success
+                                            {% elif question.difficulty.value == 'medium' %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ question.difficulty.value.capitalize() }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="card bg-dark shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Analysis</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chapterPerformanceChart" width="100%" height="100"></canvas>
+                
+                <hr class="my-4">
+                
+                <h6>Chapter-wise Performance</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Chapter</th>
+                                <th>Score</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for chapter, data in chapter_performance.items() %}
+                                <tr>
+                                    <td>{{ chapter }}</td>
+                                    <td>{{ data.score }} / {{ data.max_score }}</td>
+                                    <td style="width: 30%;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">{{ data.percentage }}%</div>
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar 
+                                                    {% if data.percentage >= 80 %}bg-success
+                                                    {% elif data.percentage >= 60 %}bg-info
+                                                    {% elif data.percentage >= 40 %}bg-warning
+                                                    {% else %}bg-danger{% endif %}"
+                                                    role="progressbar" style="width: {{ data.percentage }}%">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="fas fa-star text-warning me-2"></i>Strengths</h6>
+                    {% set has_strengths = false %}
+                    <ul>
+                        {% for chapter, data in chapter_performance.items() %}
+                            {% if data.percentage >= 75 %}
+                                <li>{{ chapter }}</li>
+                                {% set has_strengths = true %}
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    
+                    {% if not has_strengths %}
+                        <p class="text-muted">No particular strengths identified in this test.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-exclamation-triangle text-danger me-2"></i>Areas for Improvement</h6>
+                    {% set has_weak_areas = false %}
+                    <ul>
+                        {% for chapter, data in chapter_performance.items() %}
+                            {% if data.percentage < 70 %}
+                                <li>{{ chapter }}</li>
+                                {% set has_weak_areas = true %}
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    
+                    {% if not has_weak_areas %}
+                        <p class="text-muted">No significant areas for improvement identified in this test.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i> 
+                    <strong>Tip:</strong> Create focused tests on specific chapters to improve your understanding and performance.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+$(document).ready(function() {
+    const chapterData = JSON.parse('{{ chapter_performance|tojson|safe }}');
+    const chapters = Object.keys(chapterData);
+    const scores = chapters.map(c => chapterData[c].percentage || 0);
+
+    // Create chart
+    const ctx = document.getElementById('chapterPerformanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chapters,
+            datasets: [{
+                label: 'Score (%)',
+                data: scores,
+                backgroundColor: scores.map(score => {
+                    if (score >= 80) return 'rgba(40, 167, 69, 0.7)';
+                    if (score >= 60) return 'rgba(23, 162, 184, 0.7)';
+                    if (score >= 40) return 'rgba(255, 193, 7, 0.7)';
+                    return 'rgba(220, 53, 69, 0.7)';
+                }),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {y: {beginAtZero: true, max: 100, ticks: { color: '#ffffff'}}, x:{ticks: {color: '#ffffff'}}},
+            plugins: {legend: {display: false,labels: {color: '#ffffff'}}}
+        }
+    });
+});
+</script>
+{% endblock %}

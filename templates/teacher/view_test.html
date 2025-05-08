@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Test Details{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Test Details</h1>
+    <a href="{{ url_for('routes.teacher_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h4 class="card-title mb-0">{{ test.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p>{{ test.description }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex flex-column">
+                            <div class="mb-2">
+                                <strong><i class="fas fa-clock me-2"></i>Duration:</strong> {{ test.duration_minutes }} minutes
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-award me-2"></i>Total Marks:</strong> {{ test.total_marks }}
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-calendar-alt me-2"></i>Created:</strong> {{ test.created_at.strftime('%Y-%m-%d') }}
+                            </div>
+                            <div>
+                                <strong><i class="fas fa-users me-2"></i>Assigned to:</strong> 
+                                {% if test.is_public %}All Students{% else %}Selected Students{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12 text-end">
+                        <a href="{{ url_for('routes.add_questions_to_test', test_id=test.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i> Edit Test
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Test Questions</h5>
+            </div>
+            <div class="card-body">
+                {% if test_questions %}
+                    <div class="accordion" id="testQuestionsAccordion">
+                        {% for question, test_question in test_questions %}
+                            <div class="accordion-item bg-dark">
+                                <h2 class="accordion-header" id="heading{{ question.id }}">
+                                    <button class="accordion-button collapsed bg-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ question.id }}" aria-expanded="false" aria-controls="collapse{{ question.id }}">
+                                        <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                                            <div>
+                                                <span class="badge bg-secondary me-2">Q{{ test_question.order }}</span>
+                                                {{ question.text|truncate(100) }}
+                                            </div>
+                                            <div>
+                                                <span class="badge 
+                                                    {% if question.difficulty.value == 'easy' %}bg-success
+                                                    {% elif question.difficulty.value == 'medium' %}bg-warning
+                                                    {% else %}bg-danger{% endif %} me-2">
+                                                    {{ question.difficulty.value.capitalize() }}
+                                                </span>
+                                                <span class="badge bg-info">{{ question.marks }} marks</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ question.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ question.id }}" data-bs-parent="#testQuestionsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            <h6>Question:</h6>
+                                            <p>{{ question.text }}</p>
+                                        </div>
+                                        
+                                        {% if question.question_type.value == 'multiple_choice' %}
+                                            <div class="mb-3">
+                                                <h6>Options:</h6>
+                                                <div class="ms-3">
+                                                    <div class="mb-1">A. {{ question.option_a }}</div>
+                                                    <div class="mb-1">B. {{ question.option_b }}</div>
+                                                    <div class="mb-1">C. {{ question.option_c }}</div>
+                                                    <div class="mb-1">D. {{ question.option_d }}</div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="mb-3">
+                                            <h6>Correct Answer:</h6>
+                                            <p class="text-success">{{ question.correct_answer }}</p>
+                                        </div>
+                                        
+                                        {% if question.solution %}
+                                            <div class="mb-3">
+                                                <h6>Solution:</h6>
+                                                <p>{{ question.solution }}</p>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="row">
+                                            <div class="col">
+                                                <span class="text-muted">Type: {{ question.question_type.value.replace('_', ' ').capitalize() }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> No questions have been added to this test yet.
+                        <div class="mt-2">
+                            <a href="{{ url_for('routes.add_questions_to_test', test_id=test.id) }}" class="btn btn-sm btn-primary">
+                                Add Questions Now
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Student Results</h5>
+            </div>
+            <div class="card-body">
+                {% if results %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Date Taken</th>
+                                    <th>Score</th>
+                                    <th>Percentage</th>
+                                    <th>Time Spent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in results %}
+                                <tr>
+                                    <td>{{ result.student.username }}</td>
+                                    <td>{{ result.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ result.total_score }} / {{ test.total_marks }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% set percentage = (result.total_score / test.total_marks) * 100 if test.total_marks > 0 else 0 %}
+                                            <div class="me-2">{{ percentage|round(1) }}%</div>
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar 
+                                                    {% if percentage >= 80 %}bg-success
+                                                    {% elif percentage >= 60 %}bg-info
+                                                    {% elif percentage >= 40 %}bg-warning
+                                                    {% else %}bg-danger{% endif %}"
+                                                    role="progressbar" style="width: {{ percentage }}%">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% set time_spent = (result.end_time - result.start_time).total_seconds() // 60 %}
+                                        {{ time_spent|int }} minutes
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <canvas id="resultsChart" width="400" height="200"></canvas>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No students have taken this test yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if results %}
+<script type="text/javascript">
+$(document).ready(function() {
+    var ctx = document.getElementById('resultsChart').getContext('2d');
+    
+    var students = JSON.parse("{{ results|map(attribute='student.username')|list|tojson|safe }}");
+    var scores = JSON.parse("{{ results|map(attribute='total_score')|list|tojson|safe }}");
+    var maxScore = JSON.parse('{{ test.total_marks|tojson|safe }}');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: students,
+            datasets: [{
+                label: 'Score',
+                data: scores,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: maxScore + 2
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Student Scores for ' + '{{ test.title|safe }}'.replace(/'/g, "\\'")
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

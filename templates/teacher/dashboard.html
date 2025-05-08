@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Teacher Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-dark text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted">Total Students</h6>
+                        <h2 class="card-text">{{ total_students }}</h2>
+                    </div>
+                    <div class="text-primary">
+                        <i class="fas fa-user-graduate fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted">Total Tests</h6>
+                        <h2 class="card-text">{{ total_tests }}</h2>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-file-alt fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-muted">Total Questions</h6>
+                        <h2 class="card-text">{{ total_questions }}</h2>
+                    </div>
+                    <div class="text-info">
+                        <i class="fas fa-question-circle fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-dark shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Tests</h5>
+                <a href="{{ url_for('routes.create_test') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> Create Test
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_tests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date Created</th>
+                                    <th>Duration</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in recent_tests %}
+                                <tr>
+                                    <td>{{ test.title }}</td>
+                                    <td>{{ test.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ test.duration_minutes }} mins</td>
+                                    <td>
+                                        <a href="{{ url_for('routes.view_test', test_id=test.id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No tests created yet.</p>
+                        <a href="{{ url_for('routes.create_test') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Create Your First Test
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card bg-dark shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Student Performance</h5>
+                <a href="{{ url_for('routes.teacher_students') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-users me-1"></i> View All Students
+                </a>
+            </div>
+            <div class="card-body">
+                {% if student_performance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Tests Taken</th>
+                                    <th>Avg. Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in student_performance %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.tests_taken }}</td>
+                                    <td>
+                                        {% if student.tests_taken > 0 %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-2">{{ (student.avg_score * 100)|round|int }}%</div>
+                                                <div class="progress flex-grow-1" style="height: 6px;">
+                                                    <div class="progress-bar 
+                                                        {% if student.avg_score >= 80 %}bg-success
+                                                        {% elif student.avg_score >= 60 %}bg-info
+                                                        {% elif student.avg_score >= 40 %}bg-warning
+                                                        {% else %}bg-danger{% endif %}"
+                                                        role="progressbar" style="width: {{ (student.avg_score * 100)|round|int }}%;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No tests taken</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No student performance data available.</p>
+                        {% if total_students == 0 %}
+                            <p class="text-muted">You don't have any students yet.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('routes.manage_questions') }}" class="btn btn-outline-primary w-100 p-3">
+                            <i class="fas fa-question-circle fa-2x mb-2"></i><br>
+                            Manage Questions
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('routes.create_test') }}" class="btn btn-outline-success w-100 p-3">
+                            <i class="fas fa-file-alt fa-2x mb-2"></i><br>
+                            Create New Test
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('routes.teacher_students') }}" class="btn btn-outline-info w-100 p-3">
+                            <i class="fas fa-users fa-2x mb-2"></i><br>
+                            View Students
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 p-3">
+                            <i class="fas fa-cog fa-2x mb-2"></i><br>
+                            Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

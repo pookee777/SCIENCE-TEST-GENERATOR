@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Personalized Test{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Generate Personalized Test</h1>
+    <a href="{{ url_for('routes.student_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Personalized Test Generator</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-brain me-2"></i> Our AI recommendation engine will analyze your performance history and generate a test tailored to your learning needs, focusing on areas where you need more practice.
+                </div>
+                
+                <form method="POST" action="{{ url_for('routes.personalized_test') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Test Title</label>
+                        {{ form.title(class="form-control") }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Chapters (Optional - Select to focus on specific areas)</label>
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for subfield in form.chapters %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            {{ subfield(class="form-check-input") }}
+                                            <label class="form-check-label" for="{{ subfield.id }}">
+                                                {{ subfield.label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted">If no chapters are selected, the system will recommend questions across all chapters based on your performance.</small>
+                        {% if form.chapters.errors %}
+                            <div class="text-danger">
+                                {% for error in form.chapters.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="num_questions" class="form-label">Number of Questions</label>
+                            {{ form.num_questions(class="form-control", type="number", min=3, max=30) }}
+                            {% if form.num_questions.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.num_questions.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="duration_minutes" class="form-label">Test Duration (minutes)</label>
+                            {{ form.duration_minutes(class="form-control", type="number", min=5, max=180) }}
+                            {% if form.duration_minutes.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.duration_minutes.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Once you start the test, a timer will begin. The test will automatically submit when the time is up.
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card bg-dark shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0">About Personalized Learning</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6><i class="fas fa-cogs text-info me-2"></i>How it Works</h6>
+                        <p>Our recommendation engine uses machine learning to analyze your test history and identify:</p>
+                        <ul>
+                            <li>Chapters where you've scored lower</li>
+                            <li>Question types you find challenging</li>
+                            <li>Difficulty levels that match your current proficiency</li>
+                            <li>Concepts that need reinforcement</li>
+                        </ul>
+                        <p>Based on this analysis, we generate a personalized test targeting your specific learning needs.</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6><i class="fas fa-star text-warning me-2"></i>Benefits of Personalized Learning</h6>
+                        <ul>
+                            <li>Focus your study time more efficiently</li>
+                            <li>Strengthen your understanding of challenging concepts</li>
+                            <li>Track improvement in specific areas over time</li>
+                            <li>Prepare more effectively for exams</li>
+                            <li>Build confidence in previously difficult topics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+/* Custom styles for the Physics Test Master application */
+body {
+    background-color: #f8f9fa; /* Light gray */
+    font-family: Arial, sans-serif;
+}
+
+.card {
+    border: none;
+}
+
+.card-title {
+    color: #ffffff;
+}
+
+.card-body {
+    color: #d1d1d1;
+}
+
+.accordion-button {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #495057;
+}
+
+.accordion-body {
+    background-color: #343a40;
+    color: #d1d1d1;
+}
