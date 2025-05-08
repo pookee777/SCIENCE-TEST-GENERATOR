@@ -19,6 +19,9 @@ from extensions import db, login_manager
 
 Base = declarative_base()
 
+
+app = Flask(__name__)  
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
