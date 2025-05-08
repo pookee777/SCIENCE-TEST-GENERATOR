@@ -82,7 +82,7 @@ def create_app():
         db.create_all()
         logger.debug("Database tables created")
     def index():
-    return render_template("routes.index.html")
+        return render_template("routes.index.html")
     
     @app.route('/health')
     def health_check():
